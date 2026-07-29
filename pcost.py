@@ -13,4 +13,5 @@ def portfolio_cost(filename) -> float:
                 continue
         return total_cost
 
-print(portfolio_cost('Data/portfolio3.dat'))
+if __name__ == '__main__':
+    print(portfolio_cost('Data/portfolio3.dat'))
