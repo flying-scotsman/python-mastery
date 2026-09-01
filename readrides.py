@@ -19,7 +19,7 @@ def read_rides_as_tuples(filename):
     return records
 
 def read_rides_as_dict(filename):
-    records = []
+    records = RideData()
     with open(filename) as f:
         rows = csv.reader(f)
         headings = next(rows)     # Skip headers
@@ -69,6 +69,53 @@ class RowSlottedClass:
         self.date = date
         self.daytype = daytype
         self.rides = rides
+
+def read_rides_as_columns(filename):
+    '''
+    Read the bus ride data into 4 lists, representing columns
+    '''
+    routes = []
+    dates = []
+    daytypes = []
+    numrides = []
+    with open(filename) as f:
+        rows = csv.reader(f)
+        headings = next(rows)     # Skip headers
+        for row in rows:
+            routes.append(row[0])
+            dates.append(row[1])
+            daytypes.append(row[2])
+            numrides.append(int(row[3]))
+    return dict(routes=routes, dates=dates, daytypes=daytypes, numrides=numrides)
+
+import collections
+class RideData(collections.abc.Sequence):
+    def __init__(self):
+        self.routes = []      # Columns
+        self.dates = []
+        self.daytypes = []
+        self.numrides = []
+
+    def __len__(self):
+        # All lists assumed to have the same length
+        return len(self.routes)
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return [{'route': self.routes[i],
+                     'date': self.dates[i],
+                     'daytype': self.daytypes[i],
+                     'rides': self.numrides[i]} for i in range(index.start, index.stop)]
+        return { 'route': self.routes[index],
+                         'date': self.dates[index],
+                         'daytype': self.daytypes[index],
+                         'rides': self.numrides[index] }
+
+    def append(self, d):
+        self.routes.append(d['route'])
+        self.dates.append(d['date'])
+        self.daytypes.append(d['daytype'])
+        self.numrides.append(d['rides'])
 
 if __name__ == '__main__':
     import tracemalloc
