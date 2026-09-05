@@ -1,6 +1,8 @@
 import csv
 
 class Stock:
+    types = (str, int, float)
+
     def __init__(self, name, shares, price):
         self.name = name
         self.shares = shares
@@ -13,12 +15,10 @@ class Stock:
         self.shares -= nshares
         # TODO: What about negative values?
 
-def read_portfolio(filename):
-    with open(filename, 'r') as f:
-        data = csv.reader(f)
-        header = next(data)
-        stocks = [Stock(*row) for row in data]
-        return stocks
+    @classmethod
+    def from_row(cls, row):
+        values = [func(val) for func, val in zip(cls.types, row)]
+        return cls(*values)
 
 def print_portfolio(portfolio):
     print('%10s %10s %10s' % ('name', 'shares', 'price'))
