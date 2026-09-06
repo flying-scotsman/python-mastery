@@ -1,5 +1,3 @@
-import csv
-
 class Stock:
     _types = (str, int, float)
     __slots__ = ['name', '_shares', '_price']
@@ -37,7 +35,7 @@ class Stock:
         elif value < 0:
             raise ValueError("price must be >= 0")
         
-        self._shares = value
+        self._price = value
 
     def sell(self, nshares):
         self._shares -= nshares
@@ -45,7 +43,7 @@ class Stock:
 
     @classmethod
     def from_row(cls, row):
-        values = [func(val) for func, val in zip(cls.types, row)]
+        values = [func(val) for func, val in zip(cls._types, row)]
         return cls(*values)
 
 def print_portfolio(portfolio):
