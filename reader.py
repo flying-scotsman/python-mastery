@@ -1,17 +1,13 @@
 import csv
 import collections
+from abc import ABC, abstractmethod
 
-def read_csv_as_dicts(path, coltypes):
-    with open(path, 'r') as f:
-        data = csv.reader(f)
-        header = next(data)
-        rows = []
-        for line in data:
-            rows.append({name: func(val) for name, func, val in zip(header, coltypes, line)})
-        return rows
+def read_csv_as_dicts(filename, coltypes):
+    parser = DictCSVParser(coltypes)
+    return parser.parse(filename)
 
-def read_csv_as_columns(path, types):
-    with open(path, 'r') as f:
+def read_csv_as_columns(filename, types):
+    with open(filename, 'r') as f:
         data = csv.reader(f)
         header = next(data)
         records = DataCollection(header)
@@ -20,16 +16,8 @@ def read_csv_as_columns(path, types):
         return records
 
 def read_csv_as_instances(filename, cls):
-    '''
-    Read a CSV file into a list of instances
-    '''
-    records = []
-    with open(filename) as f:
-        rows = csv.reader(f)
-        headers = next(rows)
-        for row in rows:
-            records.append(cls.from_row(row))
-    return records
+    parser = InstanceCSVParser(cls)
+    return parser.parse(filename)
 
 class DataCollection(collections.abc.Sequence):
     def __init__(self, header):
@@ -57,3 +45,33 @@ class DataCollection(collections.abc.Sequence):
     def append(self, d):
         for data, column in zip(self.data, self.columns):
             data.append(d[column])
+
+class CSVParser(ABC):
+
+    def parse(self, filename):
+        records = []
+        with open(filename) as f:
+            rows = csv.reader(f)
+            headers = next(rows)
+            for row in rows:
+                record = self.make_record(headers, row)
+                records.append(record)
+        return records
+
+    @abstractmethod
+    def make_record(self, headers, row):
+        pass
+
+class DictCSVParser(CSVParser):
+    def __init__(self, types):
+        self.types = types
+
+    def make_record(self, headers, row):
+        return { name: func(val) for name, func, val in zip(headers, self.types, row) }
+
+class InstanceCSVParser(CSVParser):
+    def __init__(self, cls):
+        self.cls = cls
+
+    def make_record(self, headers, row):
+        return self.cls.from_row(row)

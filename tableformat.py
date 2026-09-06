@@ -1,7 +1,11 @@
-class TableFormatter:
+from abc import ABC, abstractmethod
+
+class TableFormatter(ABC):
+    @abstractmethod
     def headings(self, headers):
         raise NotImplementedError()
 
+    @abstractmethod
     def row(self, rowdata):
         raise NotImplementedError()
 
@@ -37,10 +41,8 @@ def create_formatter(format: str):
     return NotImplementedError
 
 def print_table(records, fields, formatter):
-    # print(' '.join('%10s' % fieldname for fieldname in fields))
-    # print(('-'*10 + ' ')*len(fields))
-    # for record in records:
-    #     print(' '.join('%10s' % getattr(record, fieldname) for fieldname in fields))
+    if formatter is not TableFormatter:
+        return TypeError("Expected a TableFormatter")
     formatter.headings(fields)
     for r in records:
         rowdata = [getattr(r, fieldname) for fieldname in fields]
