@@ -31,19 +31,39 @@ class HTMLTableFormatter(TableFormatter):
     def row(self, rowdata):
         print("<tr> " + "".join("<th>%s</th>" % str(d) for d in rowdata) + " </tr>")
 
-def create_formatter(format: str):
+def create_formatter(format: str, column_formats: list | None = None, upper_headers: bool | None = None):
     if format == 'text':
-        return TextTableFormatter()
+        formatter_cls = TextTableFormatter
     elif format == 'csv':
-        return CSVTableFormatter()
+        formatter_cls = CSVTableFormatter
     elif format == 'html':
-        return HTMLTableFormatter()
-    return NotImplementedError
+        formatter_cls = HTMLTableFormatter
+    else:
+        return NotImplementedError
+
+    if column_formats is not None:
+        class formatter_cls(ColumnFormatMixin, formatter_cls):
+            formats = column_formats
+    if upper_headers:
+        class formatter_cls(UpperHeadersMixin, formatter_cls):
+            pass
+
+    return formatter_cls()
 
 def print_table(records, fields, formatter):
-    if formatter is not TableFormatter:
+    if not isinstance(formatter, TableFormatter):
         return TypeError("Expected a TableFormatter")
     formatter.headings(fields)
     for r in records:
         rowdata = [getattr(r, fieldname) for fieldname in fields]
         formatter.row(rowdata)
+
+class ColumnFormatMixin:
+    formats = []
+    def row(self, rowdata):
+        rowdata = [(fmt % d) for fmt, d in zip(self.formats, rowdata)]
+        super().row(rowdata)
+
+class UpperHeadersMixin:
+    def headings(self, headers):
+        super().headings([h.upper() for h in headers])
