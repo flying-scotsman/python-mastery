@@ -25,10 +25,7 @@ def csv_as_dicts(file: Iterable[str], types: list[Callable[[str], object]], head
 
     Optionally accepts headers for headerless CSVs.
     '''
-    def make_dict(headers, types, row):
-        return {name: func(val) for name, func, val in zip(headers, types, row)}
-    func = partial(make_dict, types=types)
-    return convert_csv(file, func)
+    return convert_csv(file, lambda headers, row: {name: func(val) for name, func, val in zip(headers, types, row)})
 
 def csv_as_instances[T](file: Iterable[str], cls: type[T], headers: list[str] = None):
     '''
@@ -36,10 +33,7 @@ def csv_as_instances[T](file: Iterable[str], cls: type[T], headers: list[str] = 
 
     Optionally accepts headers for headerless CSVs.
     '''
-    def make_instance(row, cls, headers = None):
-        return cls.from_row(row)
-    func = partial(make_instance, cls=cls)
-    return convert_csv(file, func)
+    return convert_csv(file, lambda _, row: cls.from_row(row))
 
 def convert_csv(lines: Iterable[str], fn: Callable):
     # This function shouldn't accept headers as an argument
@@ -47,4 +41,4 @@ def convert_csv(lines: Iterable[str], fn: Callable):
     records = []
     rows = csv.reader(lines)
     headers = next(rows)
-    return list(map(lambda row: fn(headers=headers, row=row), rows))
+    return list(map(lambda row: fn(headers, row), rows))
