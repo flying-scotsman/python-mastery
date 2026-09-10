@@ -1,7 +1,7 @@
 import csv
 from collections.abc import Iterable, Callable
-from typing import Any
-from functools import partial
+import logging
+logger = logging.getLogger(__name__)
 
 def read_csv_as_dicts(filename: str, types: list[Callable[[str], object]]):
     '''
@@ -41,4 +41,11 @@ def convert_csv(lines: Iterable[str], fn: Callable):
     records = []
     rows = csv.reader(lines)
     headers = next(rows)
-    return list(map(lambda row: fn(headers, row), rows))
+    records = []
+    for i, row in enumerate(rows):
+        try:
+            records.append(fn(headers, row))
+        except ValueError as e:
+            logger.warning(f"Row {i+1}: Bad row: {row}")
+            logger.debug(f"Row {i+1}: Reason: {e}")
+    return records
