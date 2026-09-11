@@ -1,11 +1,13 @@
+import sys
+
 class Structure:
-    def __init__(self, *args):
-        # How can I populate instance variables using kwargs and _fields?
-        # Answer: I use setattr
-        if len(args) != len(self._fields):
-            raise IndexError(f"Expected {len(self._fields)} arguments")
-        for i, f in enumerate(self._fields):
-            setattr(self, f, args[i])
+    @staticmethod
+    def _init():
+        locs = sys._getframe(1).f_locals
+        self = locs['self']
+        for name, val in locs.items():
+            if name == 'self': continue
+            setattr(self, name, val)
 
     def __repr__(self):
         return '%s(%s)' % (type(self).__name__,
