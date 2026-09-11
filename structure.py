@@ -1,6 +1,11 @@
 import sys
+import inspect
 
 class Structure:
+    @classmethod
+    def set_fields(cls):
+        cls._fields = tuple(inspect.signature(cls).parameters)
+
     @staticmethod
     def _init():
         locs = sys._getframe(1).f_locals
