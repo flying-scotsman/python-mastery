@@ -1,5 +1,6 @@
 import inspect
 import types
+from typing import Callable
 
 class Validator:
     def __init__(self, name=None):
@@ -56,6 +57,30 @@ class PositiveFloat(Float, Positive):
 class NonEmptyString(String, NonEmpty):
     pass
 
+def validated(func: Callable[...]):
+    def wrapper(*args, **kwargs):
+        bound = inspect.signature(func).bind(*args, **kwargs)
+        errors = []
+        for name, val in inspect.get_annotations(func).items():
+            if name != 'return':
+                try:
+                    val.check(bound.arguments[name])
+                except TypeError as e:
+                    errors.append(f"{name}: {str(e)}")
+        if len(errors) > 0:
+            raise TypeError('Bad Arguments\n' + '\n'.join(errors))
+        print('Calling', func.__name__)
+        return func(*args, **kwargs)
+    return wrapper
+    
+    
+    for name, val in self.annotations.items():
+        val.check(bound.arguments[name])
+
+    print('Calling', self.func)
+    result = self.func(*args, **kwargs)
+    return result
+
 class ValidatedFunction:
     def __init__(self, func):
         self.func = func
@@ -68,11 +93,9 @@ class ValidatedFunction:
         return types.MethodType(self, instance)
 
     def __call__(self, *args, **kwargs):
-        print(*args, **kwargs)
         bound = self.signature.bind(*args, **kwargs)
 
         for name, val in self.annotations.items():
-            print(f"Checking that {bound.arguments[name]} is of type {val}")
             val.check(bound.arguments[name])
 
         print('Calling', self.func)
@@ -116,6 +139,7 @@ class Stock:
     # def price(self, value):        
     #     self._price = PositiveFloat.check(value)
 
+    @validated
     def sell(self, nshares: Integer):
         self.shares -= nshares
         # TODO: What about negative values?
