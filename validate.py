@@ -1,3 +1,6 @@
+import inspect
+import types
+
 class Validator:
     def __init__(self, name=None):
         self.name = name
@@ -53,6 +56,29 @@ class PositiveFloat(Float, Positive):
 class NonEmptyString(String, NonEmpty):
     pass
 
+class ValidatedFunction:
+    def __init__(self, func):
+        self.func = func
+        self.signature = inspect.signature(func)
+        self.annotations = inspect.get_annotations(func)
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return types.MethodType(self, instance)
+
+    def __call__(self, *args, **kwargs):
+        print(*args, **kwargs)
+        bound = self.signature.bind(*args, **kwargs)
+
+        for name, val in self.annotations.items():
+            print(f"Checking that {bound.arguments[name]} is of type {val}")
+            val.check(bound.arguments[name])
+
+        print('Calling', self.func)
+        result = self.func(*args, **kwargs)
+        return result
+
 class Stock:
     name   = String()
     shares = PositiveInteger()
@@ -90,11 +116,13 @@ class Stock:
     # def price(self, value):        
     #     self._price = PositiveFloat.check(value)
 
-    def sell(self, nshares):
-        self._shares -= nshares
+    def sell(self, nshares: Integer):
+        self.shares -= nshares
         # TODO: What about negative values?
 
     @classmethod
     def from_row(cls, row):
         values = [func(val) for func, val in zip(cls._types, row)]
         return cls(*values)
+
+    sell = ValidatedFunction(sell)
