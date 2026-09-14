@@ -1,6 +1,7 @@
 import inspect
 import types
 from typing import Callable
+from functools import wraps
 
 class Validator:
     def __init__(self, name=None):
@@ -58,6 +59,7 @@ class NonEmptyString(String, NonEmpty):
     pass
 
 def validated(func: Callable[...]):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         bound = inspect.signature(func).bind(*args, **kwargs)
         errors = []
@@ -80,6 +82,33 @@ def validated(func: Callable[...]):
     print('Calling', self.func)
     result = self.func(*args, **kwargs)
     return result
+
+def enforce(**types):
+    errors = []
+    return_type = types.pop('return_', None)
+    def validator(func: Callable[...]):
+        sig = inspect.signature(func)
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            bound = sig.bind(*args, **kwargs)
+            print(bound.arguments)
+            for name, val in types.items():
+                try:
+                    print(f"Checking {bound.arguments[name]} is of type {val}")
+                    val.check(bound.arguments[name])
+                except TypeError as e:
+                    errors.append(f"{name}: {str(e)}")
+            if len(errors) > 0:
+                raise TypeError('Bad Arguments\n' + '\n'.join(errors))
+            result = func(*args, **kwargs)
+
+            # Now check that the result is of the correct type
+            return_type.check(result)
+
+            return result
+        return wrapper
+    return validator
+
 
 class ValidatedFunction:
     def __init__(self, func):
