@@ -3,16 +3,14 @@ import inspect
 
 class Structure:
     @classmethod
-    def set_fields(cls):
-        cls._fields = tuple(inspect.signature(cls).parameters)
-
-    @staticmethod
-    def _init():
-        locs = sys._getframe(1).f_locals
-        self = locs['self']
-        for name, val in locs.items():
-            if name == 'self': continue
-            setattr(self, name, val)
+    def create_init(cls):
+        argstr = ','.join(cls._fields)
+        code = f'def __init__(self, {argstr}):\n'
+        for name in cls._fields:
+            code += f'    self.{name} = {name}\n'
+        locs = { }
+        exec(code, locs)
+        cls.__init__ = locs['__init__']
 
     def __repr__(self):
         return '%s(%s)' % (type(self).__name__,
