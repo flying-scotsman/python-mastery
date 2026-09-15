@@ -32,6 +32,13 @@ class Structure:
             raise AttributeError(f'No attribute {name}')
         super().__setattr__(name, val) # Super sets it on object, otherwise we recurse!
 
+    def __iter__(self):
+        for name in self._fields:
+            yield getattr(self, name)
+
+    def __eq__(self, other):
+        return isinstance(other, type(self)) and tuple(self) == tuple(other)
+
 def validate_attributes(cls):
     validators = []
     for name, val in vars(cls).items():
