@@ -2,6 +2,7 @@ import inspect
 import types
 from typing import Callable
 from functools import wraps
+import decimal
 
 class Validator:
     def __init__(self, name=None):
@@ -40,14 +41,17 @@ class NonEmpty(Validator):
             raise ValueError('Must be non-empty')
         return super().check(value)
 
-class Integer(Typed):
-    expected_type = int
+_typed_classes = [
+    ('Integer', int),
+    ('Float', float),
+    ('Complex', complex),
+    ('Decimal', decimal.Decimal),
+    ('List', list),
+    ('Bool', bool),
+    ('String', str) ]
 
-class Float(Typed):
-    expected_type = float
-
-class String(Typed):
-    expected_type = str
+globals().update((name, type(name, (Typed,), {'expected_type':ty}))
+                 for name, ty in _typed_classes)
 
 class PositiveInteger(Integer, Positive):
     pass

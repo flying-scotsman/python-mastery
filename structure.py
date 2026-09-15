@@ -45,3 +45,7 @@ def validate_attributes(cls):
     cls._types = [val.expected_type for val in validators]
     cls.create_init()
     return cls
+
+def typed_structure(clsname, **validators):
+    cls = type(clsname, (Structure,), validators)
+    return cls
