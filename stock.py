@@ -1,6 +1,6 @@
-from structure import Structure
-from validate import String, PositiveInteger, PositiveFloat
+from __future__ import annotations
 
+from structure import Structure
 class Stock(Structure):
     name = String()
     shares = PositiveInteger()
