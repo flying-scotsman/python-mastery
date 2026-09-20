@@ -81,3 +81,5 @@ def validate_attributes(cls):
 def typed_structure(clsname, **validators):
     cls = type(clsname, (Structure,), validators)
     return cls
+
+__all__ = ['Structure']

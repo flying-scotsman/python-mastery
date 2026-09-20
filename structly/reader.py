@@ -49,3 +49,5 @@ def convert_csv(lines: Iterable[str], fn: Callable):
             logger.warning(f"Row {i+1}: Bad row: {row}")
             logger.debug(f"Row {i+1}: Reason: {e}")
     return records
+
+__all__ = ['read_csv_as_dicts', 'read_csv_as_instances']

@@ -9,27 +9,9 @@ class TableFormatter(ABC):
     def row(self, rowdata):
         raise NotImplementedError()
 
-class TextTableFormatter(TableFormatter):
-    def headings(self, headers):
-        print(' '.join('%10s' % h for h in headers))
-        print(('-'*10 + ' ')*len(headers))
-    
-    def row(self, rowdata):
-        print(' '.join('%10s' % d for d in rowdata))
-
-class CSVTableFormatter(TableFormatter):
-    def headings(self, headers):
-        print(",".join(headers))
-
-    def row(self, rowdata):
-        print(",".join([str(d) for d in rowdata]))
-
-class HTMLTableFormatter(TableFormatter):
-    def headings(self, headers):
-        print("<tr> " + "".join("<th>%s</th>" % h for h in headers) + " </tr>")
-
-    def row(self, rowdata):
-        print("<tr> " + "".join("<th>%s</th>" % str(d) for d in rowdata) + " </tr>")
+from .formats.text import TextTableFormatter
+from .formats.csv import CSVTableFormatter
+from .formats.html import HTMLTableFormatter
 
 def create_formatter(format: str, column_formats: list | None = None, upper_headers: bool | None = None):
     if format == 'text':
@@ -67,3 +49,5 @@ class ColumnFormatMixin:
 class UpperHeadersMixin:
     def headings(self, headers):
         super().headings([h.upper() for h in headers])
+
+__all__ = ['create_formatter', 'print_table']
